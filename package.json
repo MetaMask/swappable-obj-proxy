@@ -4,7 +4,7 @@
   "description": "Tools for creating `Proxy`s around objects that are swappable via setTarget",
   "main": "src/index.js",
   "scripts": {
-    "test": "node test/createEventEmitterProxy.js"
+    "test": "node test/"
   },
   "author": "",
   "license": "ISC",

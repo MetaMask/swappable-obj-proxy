@@ -1,9 +1,24 @@
-const createSwappableProxy = require('./createSwappableProxy')
+module.exports = function createEventEmitterProxy (newTarget) {
+  let target = newTarget
 
-module.exports = function createEventEmitterProxy (eventEmitter) {
-  let target = eventEmitter
-  const proxy = createSwappableProxy(eventEmitter)
-  proxy.setTarget = function (newTarget) {
+  const proxy = new Proxy({}, {
+    get: (_, name) => {
+      // override `setTarget` access
+      if (name === 'setTarget') return setTarget
+      return target[name]
+    },
+    set: (_, name, value) => {
+      // allow `setTarget` overrides
+      if (name === 'setTarget') {
+        setTarget = value
+        return true
+      }
+      target[name] = value
+      return true
+    },
+  })
+
+   function setTarget(newTarget) {
     const oldTarget = target
     target = newTarget
     // migrate listeners

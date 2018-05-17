@@ -1,9 +1,9 @@
 const test = require('tape')
 const EventEmitter = require('events')
-const createEventEmitterProxy = require('../index')
+const { createEventEmitterProxy } = require('../src/index')
 
 
-test('basic', (t) => {
+test('createEventEmitterProxy - basic', (t) => {
   const original = new EventEmitter()
   const next = new EventEmitter()
   const proxy = createEventEmitterProxy(original)
@@ -20,7 +20,7 @@ test('basic', (t) => {
   t.end()
 })
 
-test('once', (t) => {
+test('createEventEmitterProxy - once', (t) => {
   const original = new EventEmitter()
   const next = new EventEmitter()
   const proxy = createEventEmitterProxy(original)
@@ -36,7 +36,7 @@ test('once', (t) => {
   t.end()
 })
 
-test('other methods', (t) => {
+test('createEventEmitterProxy - other methods', (t) => {
   class ExampleSubclass extends EventEmitter {
     constructor(testHandler) {
       super()

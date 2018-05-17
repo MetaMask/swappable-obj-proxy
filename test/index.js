@@ -1,0 +1,2 @@
+require('./createSwappableProxy')
+require('./createEventEmitterProxy')
