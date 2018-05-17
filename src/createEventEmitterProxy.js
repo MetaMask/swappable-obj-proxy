@@ -1,20 +1,8 @@
-/**
- * Returns an EventEmitter that proxies events from the given event emitter
- * @param {any} eventEmitter
- * @param {object} listeners - The listeners to proxy to
- * @returns {any}
- */
+const createSwappableProxy = require('./createSwappableProxy')
+
 module.exports = function createEventEmitterProxy (eventEmitter) {
   let target = eventEmitter
-  const proxy = new Proxy({}, {
-    get: (_, name) => {
-      return target[name]
-    },
-    set: (_, name, value) => {
-      target[name] = value
-      return true
-    },
-  })
+  const proxy = createSwappableProxy(eventEmitter)
   proxy.setTarget = function (newTarget) {
     const oldTarget = target
     target = newTarget
