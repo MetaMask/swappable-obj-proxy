@@ -1,7 +1,7 @@
 {
   "name": "eventemitter-proxy",
   "version": "1.0.0",
-  "description": "",
+  "description": "Creates a `Proxy` around an `EventEmitter`. If the proxy has `setTarget` called with a different `EventEmitter`, all events will be removed from the old target and transferred to the new EventEmitter.",
   "main": "index.js",
   "scripts": {
     "test": "node test/index.js"
@@ -10,5 +10,17 @@
   "license": "ISC",
   "devDependencies": {
     "tape": "^4.9.0"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kumavis/eventemitter-proxy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kumavis/eventemitter-proxy/issues"
+  },
+  "homepage": "https://github.com/kumavis/eventemitter-proxy#readme"
 }
