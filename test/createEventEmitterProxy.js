@@ -64,3 +64,62 @@ test('createEventEmitterProxy - other methods', (t) => {
 
   t.end()
 })
+
+test('createEventEmitterProxy - eventFilter custom', (t) => {
+  const original = new EventEmitter()
+  const next = new EventEmitter()
+
+  const skippableEvents = ['a']
+  // only transfer events that are not EE internal events
+  const proxy = createEventEmitterProxy(original, {
+    eventFilter: (name) => !skippableEvents.includes(name)
+  })
+
+  let sawEvent = 0
+  proxy.on('a', () => sawEvent++)
+
+  proxy.setTarget(next)
+  original.emit('a')
+  t.equal(sawEvent, 0, 'handler was not called')
+
+  next.emit('a')
+  t.equal(sawEvent, 0, 'handler was not called')
+  t.end()
+})
+
+test('createEventEmitterProxy - eventFilter builtin', (t) => {
+  const original = new EventEmitter()
+  const next = new EventEmitter()
+
+  // only transfer events that are not EE internal events
+  const proxy = createEventEmitterProxy(original, {
+    eventFilter: 'skipInternal'
+  })
+
+  let sawEvent = 0
+  proxy.on('newListener', () => sawEvent++)
+
+  proxy.setTarget(next)
+  original.emit('newListener')
+  t.equal(sawEvent, 0, 'handler was not called')
+
+  next.emit('newListener')
+  t.equal(sawEvent, 0, 'handler was not called')
+  t.end()
+})
+
+
+test('createEventEmitterProxy - eventFilter bad', (t) => {
+  const original = new EventEmitter()
+
+  try {
+    const proxy = createEventEmitterProxy(original, {
+      eventFilter: 'foobar'
+    })
+    t.fail('did not error')
+  } catch (err) {
+    t.ok(err, 'did error')
+  }
+
+  t.end()
+})

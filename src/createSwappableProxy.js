@@ -1,6 +1,6 @@
 
-module.exports = function createSwappableProxy (newTarget) {
-  let target = newTarget
+module.exports = function createSwappableProxy (initialTarget) {
+  let target = initialTarget
 
   const proxy = new Proxy({}, {
     get: (_, name) => {
@@ -19,9 +19,9 @@ module.exports = function createSwappableProxy (newTarget) {
     },
   })
 
+  return proxy
+
   function setTarget(newTarget) {
     target = newTarget
   }
-
-  return proxy
 }

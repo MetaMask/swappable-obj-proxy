@@ -1,5 +1,15 @@
-module.exports = function createEventEmitterProxy (newTarget) {
-  let target = newTarget
+const filterNoop = () => true
+const internalEvents = ['newListener', 'removeListener']
+const externalEventFilter = (name) => !internalEvents.includes(name)
+
+module.exports = function createEventEmitterProxy (initialTarget, opts) {
+  // parse options
+  opts = opts || {}
+  let eventFilter = opts.eventFilter || filterNoop
+  if (eventFilter === 'skipInternal') eventFilter = externalEventFilter
+  if (typeof eventFilter !== 'function') throw new Error('createEventEmitterProxy - Invalid eventFilter')
+
+  let target = initialTarget
 
   const proxy = new Proxy({}, {
     get: (_, name) => {
@@ -18,18 +28,18 @@ module.exports = function createEventEmitterProxy (newTarget) {
     },
   })
 
-   function setTarget(newTarget) {
+  return proxy
+
+  function setTarget(newTarget) {
     const oldTarget = target
     target = newTarget
     // migrate listeners
-    oldTarget.eventNames().forEach((name) => {
+    oldTarget.eventNames().filter(eventFilter).forEach((name) => {
       getRawListeners(oldTarget, name).forEach(handler => newTarget.on(name, handler))
     })
     // remove old
     oldTarget.removeAllListeners()
   }
-
-  return proxy
 }
 
 function getRawListeners(eventEmitter, name) {
