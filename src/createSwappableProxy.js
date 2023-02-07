@@ -3,10 +3,17 @@ module.exports = function createSwappableProxy (initialTarget) {
   let target = initialTarget
 
   const proxy = new Proxy({}, {
-    get: (_, name) => {
+    get: (_, name, receiver) => {
       // override `setTarget` access
       if (name === 'setTarget') return setTarget
-      return target[name]
+
+      const value = target[name];
+      if (value instanceof Function) {
+        return function (...args) {
+          return value.apply(this === receiver ? target : this, args);
+        };
+      }
+      return value;
     },
     set: (_, name, value) => {
       // allow `setTarget` overrides
