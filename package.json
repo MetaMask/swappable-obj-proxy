@@ -1,5 +1,5 @@
 {
-  "name": "swappable-obj-proxy",
+  "name": "@metamask/swappable-obj-proxy",
   "version": "1.1.0",
   "description": "Tools for creating `Proxy`s around objects that are swappable via setTarget",
   "main": "src/index.js",
@@ -17,10 +17,10 @@
   "dependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kumavis/eventemitter-proxy.git"
+    "url": "https://github.com/MetaMask/swappable-obj-proxy.git"
   },
   "bugs": {
-    "url": "https://github.com/kumavis/eventemitter-proxy/issues"
+    "url": "https://github.com/MetaMask/swappable-obj-proxy/issues"
   },
-  "homepage": "https://github.com/kumavis/eventemitter-proxy#readme"
+  "homepage": "https://github.com/MetaMask/swappable-obj-proxy#readme"
 }
