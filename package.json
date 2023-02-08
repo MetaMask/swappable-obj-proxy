@@ -22,5 +22,9 @@
   "bugs": {
     "url": "https://github.com/MetaMask/swappable-obj-proxy/issues"
   },
-  "homepage": "https://github.com/MetaMask/swappable-obj-proxy#readme"
+  "homepage": "https://github.com/MetaMask/swappable-obj-proxy#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
