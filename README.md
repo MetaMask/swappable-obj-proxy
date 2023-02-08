@@ -4,7 +4,7 @@ Creates a `Proxy` around any object. Retarget the proxy with `setTarget`.
 
 ##### usage
 ```js
-const { createSwappableProxy } = require('swappable-obj-proxy')
+const { createSwappableProxy } = require('@metamask/swappable-obj-proxy')
 
 const original = { sayHello: () => 'hi' }
 const next = { sayHello: () => 'haay' }
@@ -21,7 +21,7 @@ Creates a `Proxy` around an `EventEmitter`. If the proxy has `setTarget` called 
 
 ##### usage
 ```js
-const { createEventEmitterProxy } = require('swappable-obj-proxy')
+const { createEventEmitterProxy } = require('@metamask/swappable-obj-proxy')
 
 const original = new EventEmitter()
 const next = new EventEmitter()
