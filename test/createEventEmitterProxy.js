@@ -2,6 +2,19 @@ const test = require('tape')
 const EventEmitter = require('events')
 const { createEventEmitterProxy } = require('../src/index')
 
+class Foo {
+  #qux;
+
+  bar() {
+    this.#baz();
+    this.#qux = true;
+    return 'fizzbuzz';
+  }
+
+  #baz() {
+    // do whatever
+  }
+}
 
 test('createEventEmitterProxy - basic', (t) => {
   const original = new EventEmitter()
@@ -120,6 +133,43 @@ test('createEventEmitterProxy - eventFilter bad', (t) => {
   } catch (err) {
     t.ok(err, 'did error')
   }
+
+  t.end()
+})
+
+test('createEventEmitterProxy - calling a method', (t) => {
+  const underlying = {
+    foo() {
+      return this.bar();
+    },
+    bar() {
+      return 42;
+    }
+  }
+  const proxy = createEventEmitterProxy(underlying)
+
+  t.equal(proxy.foo(), 42)
+
+  t.end()
+})
+
+test('createEventEmitterProxy - calling a method on an instance of a class with private fields', (t) => {
+  class Foo {
+    #qux;
+
+    bar() {
+      this.#qux = true;
+      return this.#baz();
+    }
+
+    #baz() {
+      return [this.#qux, 42];
+    }
+  }
+  const underlying = new Foo()
+  const proxy = createEventEmitterProxy(underlying)
+
+  t.deepEqual(proxy.bar(), [true, 42])
 
   t.end()
 })
