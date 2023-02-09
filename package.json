@@ -2,27 +2,24 @@
   "name": "@metamask/swappable-obj-proxy",
   "version": "1.1.0",
   "description": "Tools for creating `Proxy`s around objects that are swappable via setTarget",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "node test/"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "tape": "^4.9.0"
-  },
-  "directories": {
-    "test": "test"
-  },
-  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/swappable-obj-proxy.git"
   },
-  "bugs": {
-    "url": "https://github.com/MetaMask/swappable-obj-proxy/issues"
+  "license": "ISC",
+  "main": "src/index.js",
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "test": "node test/"
   },
-  "homepage": "https://github.com/MetaMask/swappable-obj-proxy#readme",
+  "devDependencies": {
+    "tape": "^4.9.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
