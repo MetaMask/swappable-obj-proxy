@@ -1,7 +1,7 @@
-const createSwappableProxy = require('./createSwappableProxy')
-const createEventEmitterProxy = require('./createEventEmitterProxy')
+const createEventEmitterProxy = require('./createEventEmitterProxy');
+const createSwappableProxy = require('./createSwappableProxy');
 
 module.exports = {
   createSwappableProxy,
   createEventEmitterProxy,
-}
+};
