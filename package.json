@@ -15,6 +15,7 @@
     "src/index.js"
   ],
   "scripts": {
+    "build": "echo 'No build command defined yet, skipping'",
     "lint": "yarn lint:eslint && yarn lint:misc --check && yarn lint:dependencies && yarn lint:changelog",
     "lint:changelog": "auto-changelog validate",
     "lint:dependencies": "depcheck",
