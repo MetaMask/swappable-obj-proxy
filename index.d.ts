@@ -1,14 +1,16 @@
 declare module '@metamask/swappable-obj-proxy' {
-  export type SwappableProxy<T = unknown> = T & {
+  import EventEmitter from 'events';
+
+  export type SwappableProxy<T> = T & {
     setTarget: (newTarget: T) => void,
   };
 
-  export function createEventEmitterProxy<T = unknown>(
+  export function createEventEmitterProxy<T extends EventEmitter>(
     initialTarget: T,
     options?: {
       eventFilter?: ((eventName: string) => boolean) | 'skipInternal';
     },
   ): SwappableProxy<T>;
 
-  export function createSwappableProxy<T = unknown>(initialTarget: unknown): SwappableProxy<T>;
+  export function createSwappableProxy<T>(initialTarget: T): SwappableProxy<T>;
 }
