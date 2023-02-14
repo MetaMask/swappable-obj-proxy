@@ -1,0 +1,11 @@
+{
+  "ignores": [
+    "@lavamoat/allow-scripts",
+    "@metamask/auto-changelog",
+    "@types/*",
+    "@typescript-eslint/parser",
+    "prettier-plugin-packagejson",
+    "ts-node",
+    "typedoc"
+  ]
+}
