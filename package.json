@@ -16,6 +16,7 @@
     "test": "node test/"
   },
   "devDependencies": {
+    "@lavamoat/allow-scripts": "^2.0.3",
     "@metamask/auto-changelog": "^3.1.0",
     "tape": "^4.9.0"
   },
@@ -26,5 +27,10 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "packageManager": "yarn@3.4.1"
+  "packageManager": "yarn@3.4.1",
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false
+    }
+  }
 }
