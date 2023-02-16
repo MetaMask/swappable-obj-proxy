@@ -13,7 +13,7 @@ module.exports = {
     },
 
     {
-      files: ['test/*.js'],
+      files: ['test/*.js', '*.test.js'],
       parserOptions: {
         // To accommodate private fields syntax; this won't be necessary with
         // the TypeScript configuration
@@ -30,6 +30,15 @@ module.exports = {
           },
         ],
       },
+    },
+
+    {
+      files: ['*.test.ts', '*.test.js'],
+      // This is temporary until we switch to TypeScript
+      parserOptions: {
+        sourceType: 'script',
+      },
+      extends: ['@metamask/eslint-config-jest'],
     },
   ],
 
