@@ -4,6 +4,10 @@ Creates a `Proxy` around any object. Retarget the proxy with `setTarget`.
 
 ## Installation
 
+`yarn add @metamask/swappable-obj-proxy`
+
+or
+
 `npm install @metamask/swappable-obj-proxy`
 
 ## Usage
