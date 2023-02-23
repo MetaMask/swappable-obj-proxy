@@ -69,7 +69,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
   const proxy = new Proxy<T>(target, {
     get(
       localTarget: T & { [key: string | symbol]: unknown },
-      name: keyof T | string | symbol,
+      name: 'setTarget' | keyof T | string | symbol,
       receiver: SwappableProxy<T>,
     ): unknown {
       // override `setTarget` access
@@ -89,7 +89,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
     },
     set(
       localTarget: T & Record<string | symbol, unknown>,
-      name: keyof T | string | symbol,
+      name: 'setTarget' | keyof T | string | symbol,
       // This setter takes either the `setTarget` function, the value of a a
       // known property of T, or something else. However, the type of this value
       // depends on the property given, and getting TypeScript to figure this
