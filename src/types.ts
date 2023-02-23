@@ -8,6 +8,6 @@
  * @template T - The type of the object you want to wrap. It is assumed that
  * you will maintain this type even when swapping out the target.
  */
-export type SwappableProxy<T> = T & {
+export type SwappableProxy<T extends object> = T & {
   setTarget: (newTarget: T) => void;
 };

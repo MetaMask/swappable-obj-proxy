@@ -48,7 +48,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
    *
    * @param newTarget - The new object.
    */
-  let setTarget = (newTarget: any) => {
+  let setTarget = (newTarget: T) => {
     const oldTarget = target;
     target = newTarget;
     // migrate listeners
@@ -56,25 +56,31 @@ export function createEventEmitterProxy<T extends EventEmitter>(
       .eventNames()
       .filter(eventFilter)
       .forEach((name) => {
-        oldTarget
-          .rawListeners(name)
-          .forEach((handler) => newTarget.on(name, handler));
+        oldTarget.rawListeners(name).forEach((handler) => {
+          // @ts-expect-error `rawListeners` returns `Function[]`, but `on`
+          // takes `(...args: any[]) => void`.
+          newTarget.on(name, handler);
+        });
       });
     // remove old
     oldTarget.removeAllListeners();
   };
 
-  const proxy: SwappableProxy<T> = new Proxy<any>(target, {
-    get: (_, name, receiver: T) => {
+  const proxy = new Proxy<T>(target, {
+    // @ts-expect-error The type of `get` in the Proxy interface is too loose,
+    // as it allows `name` to be anything, despite the Proxy constructor taking
+    // a type parameter.
+    get(
+      _target: T,
+      name: 'setTarget' | keyof T,
+      receiver: SwappableProxy<T>,
+    ): typeof setTarget | T[keyof T] {
       // override `setTarget` access
       if (name === 'setTarget') {
         return setTarget;
       }
 
-      // Typecast: We cannot typecast `name` in the arguments for this option
-      // because it conflicts with the function signature, so we need to
-      // typecast `target` instead.
-      const value = (target as any)[name];
+      const value = target[name];
       if (value instanceof Function) {
         return function (this: unknown, ...args: any[]) {
           // This function may be either bound to something or nothing.
@@ -84,19 +90,32 @@ export function createEventEmitterProxy<T extends EventEmitter>(
       }
       return value;
     },
-    set: (_, name, value) => {
+    // @ts-expect-error The type of `set` in the Proxy interface is too loose,
+    // as it allows `name` to be anything, despite the Proxy constructor taking
+    // a type parameter.
+    set(
+      _target: T,
+      name: 'setTarget' | keyof T,
+      value: typeof setTarget | T[keyof T],
+    ): boolean {
       // allow `setTarget` overrides
       if (name === 'setTarget') {
+        // @ts-expect-error TypeScript should be able to tell that `value` is
+        // `typeof setTarget`, but cannot.
         setTarget = value;
         return true;
       }
-      // Typecast: We cannot typecast `name` in the arguments for this option
-      // because it conflicts with the function signature, so we need to
-      // typecast `target` instead.
-      (target as any)[name] = value;
+      // @ts-expect-error TypeScript should be able to tell that `value` is
+      // `T[keyof T]`, but cannot.
+      target[name] = value;
       return true;
     },
   });
 
-  return proxy;
+  // Typecast: The return type of the Proxy constructor is defined to be the
+  // same as the provided type parameter. This is naive, however, as it does not
+  // account for the proxy trapping and responding to arbitrary properties; in
+  // our case, we trap `setTarget`, so this means our final proxy object
+  // contains a property on top of the underlying object's properties.
+  return proxy as SwappableProxy<T>;
 }
