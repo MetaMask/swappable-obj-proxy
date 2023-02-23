@@ -67,9 +67,14 @@ export function createEventEmitterProxy<T extends EventEmitter>(
   };
 
   const proxy = new Proxy<T>(target, {
+    // @ts-expect-error We are providing a different signature than the `get`
+    // option as defined in the Proxy interface; specifically, we've limited
+    // `name` so that it can't be arbitrary. Theoretically this is inaccurate,
+    // but because we've constrained what the `target` can be, that effectively
+    // constraints the allowed properties as well.
     get(
-      localTarget: T & { [key: string | symbol]: unknown },
-      name: 'setTarget' | keyof T | string | symbol,
+      _target: any,
+      name: 'setTarget' | keyof T,
       receiver: SwappableProxy<T>,
     ): unknown {
       // override `setTarget` access
@@ -77,7 +82,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
         return setTarget;
       }
 
-      const value = localTarget[name];
+      const value = target[name];
       if (value instanceof Function) {
         return function (this: unknown, ...args: any[]) {
           // This function may be either bound to something or nothing.
@@ -87,9 +92,14 @@ export function createEventEmitterProxy<T extends EventEmitter>(
       }
       return value;
     },
+    // @ts-expect-error We are providing a different signature than the `set`
+    // option as defined in the Proxy interface; specifically, we've limited
+    // `name` so that it can't be arbitrary. Theoretically this is inaccurate,
+    // but because we've constrained what the `target` can be, that effectively
+    // constraints the allowed properties as well.
     set(
-      localTarget: T & Record<string | symbol, unknown>,
-      name: 'setTarget' | keyof T | string | symbol,
+      _target: any,
+      name: 'setTarget' | keyof T,
       // This setter takes either the `setTarget` function, the value of a a
       // known property of T, or something else. However, the type of this value
       // depends on the property given, and getting TypeScript to figure this
@@ -102,7 +112,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
         setTarget = value;
         return true;
       }
-      localTarget[name] = value;
+      target[name] = value;
       return true;
     },
   });
