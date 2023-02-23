@@ -67,20 +67,17 @@ export function createEventEmitterProxy<T extends EventEmitter>(
   };
 
   const proxy = new Proxy<T>(target, {
-    // @ts-expect-error The type of `get` in the Proxy interface is too loose,
-    // as it allows `name` to be anything, despite the Proxy constructor taking
-    // a type parameter.
     get(
-      _target: T,
-      name: 'setTarget' | keyof T,
+      localTarget: T & { [key: string | symbol]: unknown },
+      name: keyof T | string | symbol,
       receiver: SwappableProxy<T>,
-    ): typeof setTarget | T[keyof T] {
+    ): unknown {
       // override `setTarget` access
       if (name === 'setTarget') {
         return setTarget;
       }
 
-      const value = target[name];
+      const value = localTarget[name];
       if (value instanceof Function) {
         return function (this: unknown, ...args: any[]) {
           // This function may be either bound to something or nothing.
@@ -90,24 +87,22 @@ export function createEventEmitterProxy<T extends EventEmitter>(
       }
       return value;
     },
-    // @ts-expect-error The type of `set` in the Proxy interface is too loose,
-    // as it allows `name` to be anything, despite the Proxy constructor taking
-    // a type parameter.
     set(
-      _target: T,
-      name: 'setTarget' | keyof T,
-      value: typeof setTarget | T[keyof T],
+      localTarget: T & Record<string | symbol, unknown>,
+      name: keyof T | string | symbol,
+      // This setter takes either the `setTarget` function, the value of a a
+      // known property of T, or something else. However, the type of this value
+      // depends on the property given, and getting TypeScript to figure this
+      // out is seriously difficult. It doesn't ultimately matter, however,
+      // as the setter is not visible to consumers.
+      value: any,
     ): boolean {
       // allow `setTarget` overrides
       if (name === 'setTarget') {
-        // @ts-expect-error TypeScript should be able to tell that `value` is
-        // `typeof setTarget`, but cannot.
         setTarget = value;
         return true;
       }
-      // @ts-expect-error TypeScript should be able to tell that `value` is
-      // `T[keyof T]`, but cannot.
-      target[name] = value;
+      localTarget[name] = value;
       return true;
     },
   });
