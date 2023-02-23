@@ -76,9 +76,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
       // typecast `target` instead.
       const value = (target as any)[name];
       if (value instanceof Function) {
-        return function (this: T | undefined, ...args: any[]) {
-          // This function may be a method bound to the proxy object, or an
-          // unbound function.
+        return function (this: unknown, ...args: any[]) {
           // eslint-disable-next-line no-invalid-this
           return value.apply(this === receiver ? target : this, args);
         };
