@@ -33,7 +33,7 @@ const externalEventFilter = (name: string | symbol) =>
  * `newListener` and `removeListener` will be excluded.
  * @returns The proxy object.
  */
-export function createEventEmitterProxy<T extends EventEmitterLike>(
+export function createEventEmitterProxy<Type extends EventEmitterLike>(
   initialTarget: T,
   {
     eventFilter: givenEventFilter = filterNoop,
