@@ -23,7 +23,7 @@ const externalEventFilter = (name: string | symbol) =>
  * method. In addition, when the target is changed, event listeners which have
  * been attached to the target will be detached and migrated to the new target.
  *
- * @template T - An object that implements at least `eventNames`, `rawListeners`,
+ * @template Type - An object that implements at least `eventNames`, `rawListeners`,
  * and `removeAllListeners` from [Node's EventEmitter interface](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/events.d.ts).
  * @param initialTarget - The initial object you want to wrap.
  * @param opts - The options.
@@ -34,13 +34,13 @@ const externalEventFilter = (name: string | symbol) =>
  * @returns The proxy object.
  */
 export function createEventEmitterProxy<Type extends EventEmitterLike>(
-  initialTarget: T,
+  initialTarget: Type,
   {
     eventFilter: givenEventFilter = filterNoop,
   }: {
     eventFilter?: ((eventName: string | symbol) => boolean) | 'skipInternal';
   } = {},
-): SwappableProxy<T> {
+): SwappableProxy<Type> {
   // parse options
   const eventFilter =
     givenEventFilter === 'skipInternal'
@@ -58,7 +58,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
    *
    * @param newTarget - The new object.
    */
-  let setTarget = (newTarget: T) => {
+  let setTarget = (newTarget: Type) => {
     const oldTarget = target;
     target = newTarget;
     // migrate listeners
@@ -76,16 +76,16 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
     oldTarget.removeAllListeners();
   };
 
-  const proxy = new Proxy<T>(target, {
+  const proxy = new Proxy<Type>(target, {
     // @ts-expect-error We are providing a different signature than the `get`
     // option as defined in the Proxy interface; specifically, we've limited
     // `name` so that it can't be arbitrary. Theoretically this is inaccurate,
     // but because we've constrained what the `target` can be, that effectively
     // constraints the allowed properties as well.
     get(
-      _target: T,
-      name: 'setTarget' | keyof T,
-      receiver: SwappableProxy<T>,
+      _target: Type,
+      name: 'setTarget' | keyof Type,
+      receiver: SwappableProxy<Type>,
     ): unknown {
       // override `setTarget` access
       if (name === 'setTarget') {
@@ -108,10 +108,10 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
     // but because we've constrained what the `target` can be, that effectively
     // constraints the allowed properties as well.
     set(
-      _target: T,
-      name: 'setTarget' | keyof T,
+      _target: Type,
+      name: 'setTarget' | keyof Type,
       // This setter takes either the `setTarget` function, the value of a a
-      // known property of T, or something else. However, the type of this value
+      // known property of Type, or something else. However, the type of this value
       // depends on the property given, and getting TypeScript to figure this
       // out is seriously difficult. It doesn't ultimately matter, however,
       // as the setter is not visible to consumers.
@@ -132,5 +132,5 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
   // account for the proxy trapping and responding to arbitrary properties; in
   // our case, we trap `setTarget`, so this means our final proxy object
   // contains a property on top of the underlying object's properties.
-  return proxy as SwappableProxy<T>;
+  return proxy as SwappableProxy<Type>;
 }

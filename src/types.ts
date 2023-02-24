@@ -4,9 +4,9 @@
  * supports, but also supports an extra method to switch the target.
  *
  * @member setTarget - Allows for switching the target.
- * @template T - The type of the object you want to wrap. It is assumed that
+ * @template Type - The type of the object you want to wrap. It is assumed that
  * you will maintain this type even when swapping out the target.
  */
-export type SwappableProxy<T extends object> = T & {
-  setTarget: (newTarget: T) => void;
+export type SwappableProxy<Type extends object> = Type & {
+  setTarget: (newTarget: Type) => void;
 };
