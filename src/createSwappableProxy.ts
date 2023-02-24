@@ -29,7 +29,7 @@ export function createSwappableProxy<T extends object>(
     // but because we've constrained what the `target` can be, that effectively
     // constraints the allowed properties as well.
     get(
-      _target: any,
+      _target: T,
       name: 'setTarget' | keyof T,
       receiver: SwappableProxy<T>,
     ): unknown {

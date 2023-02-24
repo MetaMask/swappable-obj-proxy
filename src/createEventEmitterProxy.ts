@@ -98,7 +98,7 @@ export function createEventEmitterProxy<T extends EventEmitter>(
     // but because we've constrained what the `target` can be, that effectively
     // constraints the allowed properties as well.
     set(
-      _target: any,
+      _target: T,
       name: 'setTarget' | keyof T,
       // This setter takes either the `setTarget` function, the value of a a
       // known property of T, or something else. However, the type of this value
