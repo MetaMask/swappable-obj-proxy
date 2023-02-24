@@ -1,6 +1,6 @@
-const EventEmitter = require('events');
+import EventEmitter from 'events';
 
-const { createEventEmitterProxy } = require('.');
+import { createEventEmitterProxy } from '.';
 
 describe('createEventEmitterProxy', () => {
   it('migrates event listeners when switching the target', () => {
@@ -40,7 +40,9 @@ describe('createEventEmitterProxy', () => {
 
   it('proxies methods to the target', () => {
     class ExampleSubclass extends EventEmitter {
-      constructor(testHandler) {
+      test: () => void;
+
+      constructor(testHandler: () => void) {
         super();
         this.test = testHandler;
       }
@@ -73,10 +75,10 @@ describe('createEventEmitterProxy', () => {
     const original = new EventEmitter();
     const next = new EventEmitter();
 
-    const skippableEvents = ['a'];
+    const skippableEvents: (string | symbol)[] = ['a'];
     // only transfer events that are not EE internal events
     const proxy = createEventEmitterProxy(original, {
-      eventFilter: (name) => !skippableEvents.includes(name),
+      eventFilter: (name: string | symbol) => !skippableEvents.includes(name),
     });
 
     let sawEvent = 0;
@@ -119,28 +121,30 @@ describe('createEventEmitterProxy', () => {
 
     expect(() => {
       createEventEmitterProxy(original, {
-        eventFilter: 'foobar',
+        eventFilter: 'foobar' as any,
       });
     }).toThrow('createEventEmitterProxy - Invalid eventFilter');
   });
 
   it('proxies a method on an instance of a class that calls another instance method', () => {
-    const underlying = {
+    class ExampleClass extends EventEmitter {
       foo() {
         return this.bar();
-      },
+      }
+
       bar() {
         return 42;
-      },
-    };
+      }
+    }
+    const underlying = new ExampleClass();
     const proxy = createEventEmitterProxy(underlying);
 
     expect(proxy.foo()).toBe(42);
   });
 
   it('proxies a method on an instance of a class that references a private field', () => {
-    class Foo {
-      #qux;
+    class ExampleClass extends EventEmitter {
+      #qux = false;
 
       bar() {
         this.#qux = true;
@@ -151,7 +155,7 @@ describe('createEventEmitterProxy', () => {
         return [this.#qux, 42];
       }
     }
-    const underlying = new Foo();
+    const underlying = new ExampleClass();
     const proxy = createEventEmitterProxy(underlying);
 
     expect(proxy.bar()).toStrictEqual([true, 42]);

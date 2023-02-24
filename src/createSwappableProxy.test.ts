@@ -1,4 +1,4 @@
-const { createSwappableProxy } = require('.');
+import { createSwappableProxy } from '.';
 
 describe('createSwappableProxy', () => {
   it('proxies properties to the target, even when it is switched', () => {
@@ -42,8 +42,8 @@ describe('createSwappableProxy', () => {
   });
 
   it('proxies a method on an instance of a class that references a private field', () => {
-    class Foo {
-      #qux;
+    class ExampleClass {
+      #qux = false;
 
       bar() {
         this.#qux = true;
@@ -54,7 +54,7 @@ describe('createSwappableProxy', () => {
         return [this.#qux, 42];
       }
     }
-    const underlying = new Foo();
+    const underlying = new ExampleClass();
     const proxy = createSwappableProxy(underlying);
 
     expect(proxy.bar()).toStrictEqual([true, 42]);
