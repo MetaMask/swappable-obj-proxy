@@ -1,8 +1,16 @@
-// This package relies on the EventEmitter type.
-// eslint-disable-next-line import/no-nodejs-modules
-import type { EventEmitter } from 'events';
-
 import type { SwappableProxy } from './types';
+
+/**
+ * A portion of Node's EventEmitter interface that `createEventEmitterProxy`
+ * expects its `target` to support.
+ */
+type EventEmitterLike = {
+  eventNames: () => (string | symbol)[];
+  // The `rawListeners` method returns an array of `Function`s.
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  rawListeners(eventName: string | symbol): Function[];
+  removeAllListeners(event?: string | symbol): EventEmitterLike;
+};
 
 const filterNoop = () => true;
 const internalEvents: (string | symbol)[] = ['newListener', 'removeListener'];
@@ -23,7 +31,7 @@ const externalEventFilter = (name: string | symbol) =>
  * `newListener` and `removeListener` will be excluded.
  * @returns The proxy object.
  */
-export function createEventEmitterProxy<T extends EventEmitter>(
+export function createEventEmitterProxy<T extends EventEmitterLike>(
   initialTarget: T,
   {
     eventFilter: givenEventFilter = filterNoop,
