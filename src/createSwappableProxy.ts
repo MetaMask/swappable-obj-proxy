@@ -5,6 +5,7 @@ import type { SwappableProxy } from './types';
  * target can be substituted with another object later using its `setTarget`
  * method.
  *
+ * @template T - An object.
  * @param initialTarget - The initial object you want to wrap.
  * @returns The proxy object.
  */

@@ -23,6 +23,8 @@ const externalEventFilter = (name: string | symbol) =>
  * method. In addition, when the target is changed, event listeners which have
  * been attached to the target will be detached and migrated to the new target.
  *
+ * @template T - An object that implements at least `eventNames`, `rawListeners`,
+ * and `removeAllListeners` from [Node's EventEmitter interface](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/events.d.ts).
  * @param initialTarget - The initial object you want to wrap.
  * @param opts - The options.
  * @param opts.eventFilter - Usually, listeners for all events will be migrated
