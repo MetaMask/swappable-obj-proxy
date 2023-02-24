@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [2.1.0]
-### Uncategorized
-- Convert to TypeScript ([#27](https://github.com/MetaMask/swappable-obj-proxy/pull/27))
+### Added
+- Convert this library to TypeScript ([#27](https://github.com/MetaMask/swappable-obj-proxy/pull/27))
+  - You should now be able to use this library in a TypeScript codebase without having to provide your own types.
 
 ## [2.0.0]
 ### Added
