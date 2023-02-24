@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0]
+### Added
+- Convert this library to TypeScript ([#27](https://github.com/MetaMask/swappable-obj-proxy/pull/27))
+  - You should now be able to use this library in a TypeScript codebase without having to provide your own types.
+
 ## [2.0.0]
 ### Added
 - Re-release of this package
@@ -13,5 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support proxying instances of class that reference private fields ([#10](https://github.com/MetaMask/swappable-obj-proxy/pull/10))
 - Add type definitions for TypeScript projects ([#13](https://github.com/MetaMask/swappable-obj-proxy/pull/13))
 
-[Unreleased]: https://github.com/MetaMask/swappable-obj-proxy/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/swappable-obj-proxy/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/MetaMask/swappable-obj-proxy/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/MetaMask/swappable-obj-proxy/releases/tag/v2.0.0
