@@ -18,11 +18,17 @@ type EventEmitterLike = {
 };
 
 type EventDetails = {
-  // the name of the event
+  /**
+   * The name of the event.
+   */
   name: string;
-  // the method given to handle the event
+  /**
+   * The method given to handle the event.
+   */
   handler: (...args: unknown[]) => unknown;
-  // name of the method used to add the event (on or prepend)
+  /**
+   * Name of the method used to add the event.
+   */
   addedWith: 'on' | 'prependListener' | 'addListener' | 'once';
 };
 
