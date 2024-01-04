@@ -135,10 +135,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
             }
           }
           if (name === 'off' || name === 'removeListener') {
-            eventsAdded = eventsAdded.filter(
-              (addedEvent) =>
-                args[0] !== addedEvent.name || args[1] !== addedEvent.handler,
-            );
+            removeEvent(args[0], args[1]);
           }
 
           // This function may be either bound to something or nothing.
