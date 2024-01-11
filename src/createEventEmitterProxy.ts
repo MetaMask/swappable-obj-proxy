@@ -46,6 +46,8 @@ const externalEventFilter = (name: string | symbol) =>
  * target can be substituted with another object later using its `setTarget`
  * method. In addition, when the target is changed, event listeners which have
  * been attached to the target will be detached and migrated to the new target.
+ * Note that events attached to the eventEmitter (not the proxy) will not be
+ * migrated or removed when calling `setTarget`.
  *
  * @template Type - An object that implements at least `eventNames`, `rawListeners`,
  * and `removeAllListeners` from [Node's EventEmitter interface](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/events.d.ts).
