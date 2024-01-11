@@ -30,6 +30,10 @@ type EventDetails = {
    * Name of the method used to add the event.
    */
   addedWith: 'on' | 'prependListener' | 'addListener' | 'once';
+  /**
+   * Determines if the event should be migrated or not when using setTarget
+   */
+  filtered: boolean;
 };
 
 const filterNoop = () => true;
@@ -83,8 +87,10 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
     const oldTarget = target;
     target = newTarget;
     // migrate listeners
-    eventsAdded.forEach(({ name, handler, addedWith }) => {
-      newTarget[addedWith](name, handler);
+    eventsAdded.forEach(({ name, handler, addedWith, filtered }) => {
+      if (!filtered) {
+        newTarget[addedWith](name, handler);
+      }
       oldTarget.off(name, handler);
     });
   };
@@ -115,7 +121,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       const value = target[name];
 
       if (typeof value === 'function') {
-        return function (this: unknown, ...args: any[]) {
+        return function(this: unknown, ...args: any[]) {
           if (name === 'once') {
             const unwrappedHandler = args[1];
             const wrappedHandler = (...handlerArgs: any[]) => {
@@ -130,17 +136,13 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
             name === 'prependListener' ||
             name === 'once'
           ) {
-            if (eventFilter(args[0])) {
-              eventsAdded.push({
-                addedWith: name,
-                name: args[0],
-                handler: args[1],
-              });
-            } else {
-              return target;
-            }
-          }
-          if (name === 'off' || name === 'removeListener') {
+            eventsAdded.push({
+              addedWith: name,
+              name: args[0],
+              handler: args[1],
+              filtered: !eventFilter(args[0])
+            });
+          } else if (name === 'off' || name === 'removeListener') {
             removeEvent(args[0], args[1]);
           }
 

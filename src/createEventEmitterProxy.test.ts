@@ -47,6 +47,8 @@ describe('createEventEmitterProxy', () => {
     });
 
     original.emit('event');
+
+    expect(sawEvent).toBe(1);
     proxy.setTarget(next);
     next.emit('event');
     next.emit('event');
@@ -111,6 +113,28 @@ describe('createEventEmitterProxy', () => {
 
     next.emit('a');
     expect(sawEvent).toBe(0);
+  });
+
+  it('removes listeners that were filtered', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    // only filter all events
+    const proxy = createEventEmitterProxy(original, {
+      eventFilter: () => false
+    });
+
+    let sawEvent = 0;
+    proxy.on('a', () => {
+      sawEvent += 1;
+    });
+    original.emit('a');
+    expect(sawEvent).toBe(1);
+    proxy.setTarget(next);
+    original.emit('a');
+    expect(sawEvent).toBe(1);
+    next.emit('a');
+    expect(sawEvent).toBe(1);
   });
 
   it('excludes internal events when eventFilter is "skipInternal"', () => {
@@ -185,7 +209,8 @@ describe('createEventEmitterProxy', () => {
     const next = new EventEmitter();
 
     let moveCount = 0;
-    original.on('shouldNotMove', () => (moveCount += 1));
+    let dontMoveCount = 0;
+    original.on('shouldNotMove', () => (dontMoveCount += 1));
 
     const proxy = createEventEmitterProxy(original);
     expect(proxy.eventNames()[0]).toBe('shouldNotMove');
@@ -194,7 +219,7 @@ describe('createEventEmitterProxy', () => {
     next.emit('shouldMove');
     expect(moveCount).toBe(1);
     next.emit('shouldNotMove');
-    expect(moveCount).toBe(1);
+    expect(dontMoveCount).toBe(0);
   });
 
   it('does not migrate events that have been removed via "off"', () => {
@@ -208,6 +233,24 @@ describe('createEventEmitterProxy', () => {
     original.emit('foo');
     expect(count).toBe(1);
     proxy.off('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(1);
+    proxy.setTarget(next);
+    next.emit('foo');
+    expect(count).toBe(1);
+  });
+
+  it('does not migrate events that have been removed via "removeListener"', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    const proxy = createEventEmitterProxy(original);
+    let count = 0;
+    const inc = () => (count += 1);
+    proxy.on('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(1);
+    proxy.removeListener('foo', inc);
     original.emit('foo');
     expect(count).toBe(1);
     proxy.setTarget(next);
@@ -237,5 +280,16 @@ describe('createEventEmitterProxy', () => {
     const next = new EventEmitter();
     proxy.setTarget(next);
     expect(mockSetTarget).toHaveBeenCalledWith(next);
+  });
+
+  it('can handle the context being the proxy itself', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+
+    proxy.on.call(this, 'testEvent', function(this: typeof original) {
+      expect(this).toBe(original);
+    });
+
+    proxy.emit('testEvent');
   });
 });
