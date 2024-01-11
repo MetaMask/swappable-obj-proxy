@@ -121,7 +121,7 @@ describe('createEventEmitterProxy', () => {
 
     // only filter all events
     const proxy = createEventEmitterProxy(original, {
-      eventFilter: () => false
+      eventFilter: () => false,
     });
 
     let sawEvent = 0;
@@ -286,7 +286,7 @@ describe('createEventEmitterProxy', () => {
     const original = new EventEmitter();
     const proxy = createEventEmitterProxy(original);
 
-    proxy.on.call(this, 'testEvent', function(this: typeof original) {
+    proxy.on.call(this, 'testEvent', function (this: typeof original) {
       expect(this).toBe(original);
     });
 

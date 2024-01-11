@@ -123,7 +123,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       const value = target[name];
 
       if (typeof value === 'function') {
-        return function(this: unknown, ...args: any[]) {
+        return function (this: unknown, ...args: any[]) {
           if (name === 'once') {
             const unwrappedHandler = args[1];
             const wrappedHandler = (...handlerArgs: any[]) => {
@@ -142,7 +142,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
               addedWith: name,
               name: args[0],
               handler: args[1],
-              filtered: !eventFilter(args[0])
+              filtered: !eventFilter(args[0]),
             });
           } else if (name === 'off' || name === 'removeListener') {
             removeEvent(args[0], args[1]);
