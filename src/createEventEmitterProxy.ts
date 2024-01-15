@@ -105,7 +105,9 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
   const removeEvent = (name: string, handler: EventDetails['handler']) => {
     eventsAdded = eventsAdded.filter(
       (addedEvent) =>
-        name !== addedEvent.name || (handler !== addedEvent.handler && handler !== addedEvent.unwrappedHandler),
+        name !== addedEvent.name ||
+        (handler !== addedEvent.handler &&
+          handler !== addedEvent.unwrappedHandler),
     );
   };
 
@@ -128,8 +130,8 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       const value = target[name];
 
       if (typeof value === 'function') {
-        return function(this: unknown, ...args: any[]) {
-          let unwrappedHandler = args[1];
+        return function (this: unknown, ...args: any[]) {
+          const unwrappedHandler = args[1];
           if (name === 'once') {
             const wrappedHandler = (...handlerArgs: any[]) => {
               removeEvent(args[0], wrappedHandler);
@@ -151,9 +153,14 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
               filtered: !eventFilter(args[0]),
             });
           } else if (name === 'off' || name === 'removeListener') {
-            const eventAdded = eventsAdded.find(({ name, unwrappedHandler }) => name === args[0] && unwrappedHandler === args[1]);
+            const eventAdded = eventsAdded.find(
+              ({ name: addedName, unwrappedHandler: addedUnwrappedHandler }) =>
+                addedName === args[0] && addedUnwrappedHandler === args[1],
+            );
             // this should never really happen unless you've called removeListener for something that is already not there.
-            if (eventAdded === undefined) { return target; }
+            if (eventAdded === undefined) {
+              return target;
+            }
             removeEvent(args[0], args[1]);
             args[1] = eventAdded.handler;
           }

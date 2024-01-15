@@ -47,10 +47,10 @@ describe('createEventEmitterProxy', () => {
     });
 
     original.emit('event');
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100));
     original.emit('event');
     expect(sawEvent).toBe(1);
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100));
     proxy.setTarget(next);
     next.emit('event');
     next.emit('event');
@@ -312,7 +312,7 @@ describe('createEventEmitterProxy', () => {
     const original = new EventEmitter();
     const proxy = createEventEmitterProxy(original);
 
-    proxy.on.call(this, 'testEvent', function(this: typeof original) {
+    proxy.on.call(this, 'testEvent', function (this: typeof original) {
       expect(this).toBe(original);
     });
 
