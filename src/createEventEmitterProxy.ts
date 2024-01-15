@@ -130,7 +130,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       const value = target[name];
 
       if (typeof value === 'function') {
-        return function(this: unknown, ...args: any[]) {
+        return function (this: unknown, ...args: any[]) {
           const unwrappedHandler = args[1];
           if (name === 'once') {
             const wrappedHandler = (...handlerArgs: any[]) => {
@@ -157,8 +157,12 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
               ({ name: addedName, unwrappedHandler: addedUnwrappedHandler }) =>
                 addedName === args[0] && addedUnwrappedHandler === args[1],
             );
+            // this should never really happen unless you've called removeListener for something that is already not there.
+            if (eventAdded === undefined) {
+              return target;
+            }
             removeEvent(args[0], args[1]);
-            args[1] = eventAdded?.handler ?? args[1];
+            args[1] = eventAdded.handler;
           }
 
           // This function may be either bound to something or nothing.
