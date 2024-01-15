@@ -36,7 +36,7 @@ describe('createEventEmitterProxy', () => {
     expect(sawEvent).toBe(1);
   });
 
-  it('only migrates the once method if the handler has not yet been called', () => {
+  it('only migrates event listeners added via `once` if the handler has not yet been called', async () => {
     const original = new EventEmitter();
     const next = new EventEmitter();
     const proxy = createEventEmitterProxy(original);
@@ -47,11 +47,14 @@ describe('createEventEmitterProxy', () => {
     });
 
     original.emit('event');
-
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    original.emit('event');
     expect(sawEvent).toBe(1);
+    await new Promise((resolve) => setTimeout(resolve, 100))
     proxy.setTarget(next);
     next.emit('event');
     next.emit('event');
+    expect(sawEvent).toBe(1);
     proxy.setTarget(original);
     next.emit('event');
     original.emit('event');
@@ -240,6 +243,13 @@ describe('createEventEmitterProxy', () => {
     expect(count).toBe(1);
   });
 
+  it('does not error when calling removeListener when there are no listeners', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+    const ee = proxy.removeListener('foo', () => 123);
+    expect(ee).toBe(original);
+  });
+
   it('does not migrate events that have been removed via "removeListener"', () => {
     const original = new EventEmitter();
     const next = new EventEmitter();
@@ -256,6 +266,22 @@ describe('createEventEmitterProxy', () => {
     proxy.setTarget(next);
     next.emit('foo');
     expect(count).toBe(1);
+  });
+
+  it('removeListener works to remove events added via  `once`', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    const proxy = createEventEmitterProxy(original);
+    let count = 0;
+    const inc = () => (count += 1);
+    proxy.once('foo', inc);
+    proxy.removeListener('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(0);
+    proxy.setTarget(next);
+    next.emit('foo');
+    expect(count).toBe(0);
   });
 
   it('can set properties on the proxied event emitter', () => {
@@ -286,7 +312,7 @@ describe('createEventEmitterProxy', () => {
     const original = new EventEmitter();
     const proxy = createEventEmitterProxy(original);
 
-    proxy.on.call(this, 'testEvent', function (this: typeof original) {
+    proxy.on.call(this, 'testEvent', function(this: typeof original) {
       expect(this).toBe(original);
     });
 

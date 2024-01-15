@@ -23,9 +23,14 @@ type EventDetails = {
    */
   name: string;
   /**
-   * The method given to handle the event.
+   * The (wrapped) method given to handle the event. The wrapping will handle
+   * updating the internal event handler list used to migrate events.
    */
   handler: (...args: unknown[]) => unknown;
+  /**
+   * The original method given to handle the event.
+   */
+  unwrappedHandler: (...args: unknown[]) => unknown;
   /**
    * Name of the method used to add the event.
    */
@@ -100,7 +105,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
   const removeEvent = (name: string, handler: EventDetails['handler']) => {
     eventsAdded = eventsAdded.filter(
       (addedEvent) =>
-        name !== addedEvent.name || handler !== addedEvent.handler,
+        name !== addedEvent.name || (handler !== addedEvent.handler && handler !== addedEvent.unwrappedHandler),
     );
   };
 
@@ -123,9 +128,9 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       const value = target[name];
 
       if (typeof value === 'function') {
-        return function (this: unknown, ...args: any[]) {
+        return function(this: unknown, ...args: any[]) {
+          let unwrappedHandler = args[1];
           if (name === 'once') {
-            const unwrappedHandler = args[1];
             const wrappedHandler = (...handlerArgs: any[]) => {
               removeEvent(args[0], wrappedHandler);
               return unwrappedHandler(...handlerArgs);
@@ -141,11 +146,16 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
             eventsAdded.push({
               addedWith: name,
               name: args[0],
+              unwrappedHandler,
               handler: args[1],
               filtered: !eventFilter(args[0]),
             });
           } else if (name === 'off' || name === 'removeListener') {
+            const eventAdded = eventsAdded.find(({ name, unwrappedHandler }) => name === args[0] && unwrappedHandler === args[1]);
+            // this should never really happen unless you've called removeListener for something that is already not there.
+            if (eventAdded === undefined) { return target; }
             removeEvent(args[0], args[1]);
+            args[1] = eventAdded.handler;
           }
 
           // This function may be either bound to something or nothing.
