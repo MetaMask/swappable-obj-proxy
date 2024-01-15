@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.0]
 ### Changed
-- only migrate events that were added via the proxy ([#53](https://github.com/MetaMask/swappable-obj-proxy/pull/53))
+- Only migrate events that were added via the proxy ([#53](https://github.com/MetaMask/swappable-obj-proxy/pull/53))
+  - Previously the proxy assumed that all events on the target were added via the proxy, so they would be migrated when the proxy target changed. This introduced bugs when the target was used directly, or when two proxies pointed at the same target.
+  - Effectively this change adds support for using the target independently of the proxy, and for using multiple proxies for the same event emitter.
 
 ## [2.1.0]
 ### Added
