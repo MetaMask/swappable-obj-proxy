@@ -130,7 +130,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       const value = target[name];
 
       if (typeof value === 'function') {
-        return function (this: unknown, ...args: any[]) {
+        return function(this: unknown, ...args: any[]) {
           const unwrappedHandler = args[1];
           if (name === 'once') {
             const wrappedHandler = (...handlerArgs: any[]) => {
