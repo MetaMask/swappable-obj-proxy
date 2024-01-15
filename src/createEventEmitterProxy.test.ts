@@ -23,6 +23,21 @@ describe('createEventEmitterProxy', () => {
 
   it('proxies the "once" method to the target', () => {
     const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+
+    let sawEvent = 0;
+    proxy.once('event', () => {
+      sawEvent += 1;
+    });
+
+    original.emit('event');
+    original.emit('event');
+
+    expect(sawEvent).toBe(1);
+  });
+
+  it('only migrates event listeners added via `once` if the handler has not yet been called', async () => {
+    const original = new EventEmitter();
     const next = new EventEmitter();
     const proxy = createEventEmitterProxy(original);
 
@@ -31,9 +46,18 @@ describe('createEventEmitterProxy', () => {
       sawEvent += 1;
     });
 
+    original.emit('event');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    original.emit('event');
+    expect(sawEvent).toBe(1);
+    await new Promise((resolve) => setTimeout(resolve, 100));
     proxy.setTarget(next);
     next.emit('event');
     next.emit('event');
+    expect(sawEvent).toBe(1);
+    proxy.setTarget(original);
+    next.emit('event');
+    original.emit('event');
 
     expect(sawEvent).toBe(1);
   });
@@ -92,6 +116,28 @@ describe('createEventEmitterProxy', () => {
 
     next.emit('a');
     expect(sawEvent).toBe(0);
+  });
+
+  it('removes listeners that were filtered', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    // only filter all events
+    const proxy = createEventEmitterProxy(original, {
+      eventFilter: () => false,
+    });
+
+    let sawEvent = 0;
+    proxy.on('a', () => {
+      sawEvent += 1;
+    });
+    original.emit('a');
+    expect(sawEvent).toBe(1);
+    proxy.setTarget(next);
+    original.emit('a');
+    expect(sawEvent).toBe(1);
+    next.emit('a');
+    expect(sawEvent).toBe(1);
   });
 
   it('excludes internal events when eventFilter is "skipInternal"', () => {
@@ -159,5 +205,117 @@ describe('createEventEmitterProxy', () => {
     const proxy = createEventEmitterProxy(underlying);
 
     expect(proxy.bar()).toStrictEqual([true, 42]);
+  });
+
+  it('only migrates events that were added via the proxy, not all the events', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    let moveCount = 0;
+    let dontMoveCount = 0;
+    original.on('shouldNotMove', () => (dontMoveCount += 1));
+
+    const proxy = createEventEmitterProxy(original);
+    expect(proxy.eventNames()[0]).toBe('shouldNotMove');
+    proxy.on('shouldMove', () => (moveCount += 1));
+    proxy.setTarget(next);
+    next.emit('shouldMove');
+    expect(moveCount).toBe(1);
+    next.emit('shouldNotMove');
+    expect(dontMoveCount).toBe(0);
+  });
+
+  it('does not migrate events that have been removed via "off"', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    const proxy = createEventEmitterProxy(original);
+    let count = 0;
+    const inc = () => (count += 1);
+    proxy.on('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(1);
+    proxy.off('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(1);
+    proxy.setTarget(next);
+    next.emit('foo');
+    expect(count).toBe(1);
+  });
+
+  it('does not error when calling removeListener when there are no listeners', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+    const ee = proxy.removeListener('foo', () => 123);
+    expect(ee).toBe(original);
+  });
+
+  it('does not migrate events that have been removed via "removeListener"', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    const proxy = createEventEmitterProxy(original);
+    let count = 0;
+    const inc = () => (count += 1);
+    proxy.on('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(1);
+    proxy.removeListener('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(1);
+    proxy.setTarget(next);
+    next.emit('foo');
+    expect(count).toBe(1);
+  });
+
+  it('removeListener works to remove events added via  `once`', () => {
+    const original = new EventEmitter();
+    const next = new EventEmitter();
+
+    const proxy = createEventEmitterProxy(original);
+    let count = 0;
+    const inc = () => (count += 1);
+    proxy.once('foo', inc);
+    proxy.removeListener('foo', inc);
+    original.emit('foo');
+    expect(count).toBe(0);
+    proxy.setTarget(next);
+    next.emit('foo');
+    expect(count).toBe(0);
+  });
+
+  it('can set properties on the proxied event emitter', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+    (proxy as any).foo = 123;
+    expect((original as any).foo).toBe(123);
+  });
+
+  it('can get values that are non-functions', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+    expect((proxy as any)._eventsCount).toBe(0);
+  });
+
+  it('can set a custom "setTarget" method', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+    const mockSetTarget = jest.fn();
+    proxy.setTarget = mockSetTarget;
+
+    const next = new EventEmitter();
+    proxy.setTarget(next);
+    expect(mockSetTarget).toHaveBeenCalledWith(next);
+  });
+
+  it('can handle the context being the proxy itself', () => {
+    const original = new EventEmitter();
+    const proxy = createEventEmitterProxy(original);
+
+    proxy.on.call(this, 'testEvent', function (this: typeof original) {
+      expect(this).toBe(original);
+    });
+
+    proxy.emit('testEvent');
   });
 });

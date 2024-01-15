@@ -10,6 +10,35 @@ type EventEmitterLike = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   rawListeners(eventName: string | symbol): Function[];
   removeAllListeners(event?: string | symbol): EventEmitterLike;
+  on(name: string, handler: (...args: unknown[]) => unknown): void;
+  prependListener(name: string, handler: (...args: unknown[]) => unknown): void;
+  addListener(name: string, handler: (...args: unknown[]) => unknown): void;
+  off(name: string, handler: (...args: unknown[]) => unknown): void;
+  once(name: string, handler: (...args: unknown[]) => unknown): void;
+};
+
+type EventDetails = {
+  /**
+   * The name of the event.
+   */
+  name: string;
+  /**
+   * The (wrapped) method given to handle the event. The wrapping will handle
+   * updating the internal event handler list used to migrate events.
+   */
+  handler: (...args: unknown[]) => unknown;
+  /**
+   * The original method given to handle the event.
+   */
+  unwrappedHandler: (...args: unknown[]) => unknown;
+  /**
+   * Name of the method used to add the event.
+   */
+  addedWith: 'on' | 'prependListener' | 'addListener' | 'once';
+  /**
+   * Determines if the event should be migrated or not when using setTarget
+   */
+  filtered: boolean;
 };
 
 const filterNoop = () => true;
@@ -22,6 +51,8 @@ const externalEventFilter = (name: string | symbol) =>
  * target can be substituted with another object later using its `setTarget`
  * method. In addition, when the target is changed, event listeners which have
  * been attached to the target will be detached and migrated to the new target.
+ * Note that events attached to the eventEmitter (not the proxy) will not be
+ * migrated or removed when calling `setTarget`.
  *
  * @template Type - An object that implements at least `eventNames`, `rawListeners`,
  * and `removeAllListeners` from [Node's EventEmitter interface](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/events.d.ts).
@@ -51,6 +82,7 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
     throw new Error('createEventEmitterProxy - Invalid eventFilter');
   }
 
+  let eventsAdded: EventDetails[] = [];
   let target = initialTarget;
 
   /**
@@ -62,18 +94,21 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
     const oldTarget = target;
     target = newTarget;
     // migrate listeners
-    oldTarget
-      .eventNames()
-      .filter(eventFilter)
-      .forEach((name) => {
-        oldTarget.rawListeners(name).forEach((handler) => {
-          // @ts-expect-error `rawListeners` returns `Function[]`, but `on`
-          // takes `(...args: any[]) => void`.
-          newTarget.on(name, handler);
-        });
-      });
-    // remove old
-    oldTarget.removeAllListeners();
+    eventsAdded.forEach(({ name, handler, addedWith, filtered }) => {
+      if (!filtered) {
+        newTarget[addedWith](name, handler);
+      }
+      oldTarget.off(name, handler);
+    });
+  };
+
+  const removeEvent = (name: string, handler: EventDetails['handler']) => {
+    eventsAdded = eventsAdded.filter(
+      (addedEvent) =>
+        name !== addedEvent.name ||
+        (handler !== addedEvent.handler &&
+          handler !== addedEvent.unwrappedHandler),
+    );
   };
 
   const proxy = new Proxy<Type>(target, {
@@ -93,8 +128,43 @@ export function createEventEmitterProxy<Type extends EventEmitterLike>(
       }
 
       const value = target[name];
-      if (value instanceof Function) {
+
+      if (typeof value === 'function') {
         return function (this: unknown, ...args: any[]) {
+          const unwrappedHandler = args[1];
+          if (name === 'once') {
+            const wrappedHandler = (...handlerArgs: any[]) => {
+              removeEvent(args[0], wrappedHandler);
+              return unwrappedHandler(...handlerArgs);
+            };
+            args[1] = wrappedHandler;
+          }
+          if (
+            name === 'on' ||
+            name === 'addListener' ||
+            name === 'prependListener' ||
+            name === 'once'
+          ) {
+            eventsAdded.push({
+              addedWith: name,
+              name: args[0],
+              unwrappedHandler,
+              handler: args[1],
+              filtered: !eventFilter(args[0]),
+            });
+          } else if (name === 'off' || name === 'removeListener') {
+            const eventAdded = eventsAdded.find(
+              ({ name: addedName, unwrappedHandler: addedUnwrappedHandler }) =>
+                addedName === args[0] && addedUnwrappedHandler === args[1],
+            );
+            // this should never really happen unless you've called removeListener for something that is already not there.
+            if (eventAdded === undefined) {
+              return target;
+            }
+            removeEvent(args[0], args[1]);
+            args[1] = eventAdded.handler;
+          }
+
           // This function may be either bound to something or nothing.
           // eslint-disable-next-line no-invalid-this
           return value.apply(this === receiver ? target : this, args);
