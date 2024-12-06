@@ -7,13 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [2.3.0]
-### Uncategorized
-- Bump micromatch from 4.0.5 to 4.0.8 in the npm_and_yarn group ([#71](https://github.com/MetaMask/swappable-obj-proxy/pull/71))
-- Bump braces from 3.0.2 to 3.0.3 in the npm_and_yarn group ([#61](https://github.com/MetaMask/swappable-obj-proxy/pull/61))
-- Bump tar from 6.1.13 to 6.2.1 ([#59](https://github.com/MetaMask/swappable-obj-proxy/pull/59))
-- Enabling MetaMask security code scanner ([#58](https://github.com/MetaMask/swappable-obj-proxy/pull/58))
-- Bump ip from 2.0.0 to 2.0.1 ([#57](https://github.com/MetaMask/swappable-obj-proxy/pull/57))
-- feat(types): export EventEmitterLike ([#56](https://github.com/MetaMask/swappable-obj-proxy/pull/56))
+### Added
+- Export `EventEmitterLike` type ([#56](https://github.com/MetaMask/swappable-obj-proxy/pull/56))
+
+### Changed
+- Bump `micromatch` from `4.0.5` to `4.0.8` ([#71](https://github.com/MetaMask/swappable-obj-proxy/pull/71))
+- Bump `braces` from `3.0.2` to `3.0.3` ([#61](https://github.com/MetaMask/swappable-obj-proxy/pull/61))
+- Bump `tar` from `6.1.13` to `6.2.1` ([#59](https://github.com/MetaMask/swappable-obj-proxy/pull/59))
+- Bump `ip` from `2.0.0` to `2.0.1` ([#57](https://github.com/MetaMask/swappable-obj-proxy/pull/57))
 
 ## [2.2.0]
 ### Changed
